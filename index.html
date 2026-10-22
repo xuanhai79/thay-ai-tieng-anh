@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Thầy AI Tiếng Anh</title>
+<title>Thầy AI Tiếng Anh – XUÂN HẢI</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e86de">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Thầy AI">
+<meta name="apple-mobile-web-app-title" content="Thầy AI Xuân Hải">
 <link rel="apple-touch-icon" href="static/icon-192.png">
 <link rel="icon" href="static/icon-192.png">
 <style>
@@ -16,7 +16,9 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { margin:0; font-family: "Segoe UI", Arial, sans-serif; background: var(--nen); color: var(--chu); }
   header { background: var(--xanh); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:5; }
-  header h1 { font-size:19px; margin:0; flex:1; }
+  header h1 { font-size:19px; margin:0; flex:1; line-height:1.15; }
+  header h1 small { display:block; font-size:12px; font-weight:800; letter-spacing:1.5px; opacity:.95; }
+  header .logo { width:42px; height:42px; border-radius:50%; background:#fff; object-fit:contain; padding:2px; flex:none; }
   header button { background:rgba(255,255,255,.2); border:0; color:#fff; font-size:15px; padding:7px 12px; border-radius:10px; cursor:pointer; }
   main { max-width:860px; margin:0 auto; padding:16px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; }
@@ -75,8 +77,8 @@
 </head>
 <body>
 <header>
-  <span style="font-size:24px">🧑‍🏫</span>
-  <h1>Thầy AI Tiếng Anh</h1>
+  <img class="logo" src="static/logo.png" alt="XUÂN HẢI">
+  <h1>Thầy AI Tiếng Anh<small>XUÂN HẢI</small></h1>
   <span id="stars" style="font-weight:700">⭐ 0</span>
   <button id="acctBtn" onclick="openAuth()">👤 Đăng nhập</button>
   <button onclick="openSettings()">⚙</button>

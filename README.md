@@ -1,4 +1,4 @@
-# Thầy AI Tiếng Anh
+# Thầy AI Tiếng Anh – XUÂN HẢI
 
 App học tiếng Anh lớp 1–9 với thầy giáo AI (nghe nói, giao tiếp, trắc nghiệm, trò chơi).
 
