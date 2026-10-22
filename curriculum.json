@@ -1,0 +1,29 @@
+{
+  "info": "Chương trình tiếng Anh lớp 1-9 (theo Thông tư 32/2018, bám bộ Global Success). Mỗi lớp gồm các chủ đề; thầy AI tự soạn chi tiết từ vựng, mẫu câu, trắc nghiệm theo từng chủ đề.",
+  "grades": {
+    "1": {"ten": "Lớp 1 (làm quen)", "level": "beginner", "giai_thich_tv": true,
+      "units": ["Hello (chào hỏi)", "Colours (màu sắc)", "Numbers 1-10 (số đếm)", "My family (gia đình)", "Animals (con vật)", "My body (cơ thể)", "Fruits (trái cây)", "Toys (đồ chơi)"]},
+    "2": {"ten": "Lớp 2 (làm quen)", "level": "beginner", "giai_thich_tv": true,
+      "units": ["Greetings (chào hỏi)", "At school (ở trường)", "My classroom (lớp học)", "Numbers 1-20", "Food and drink (đồ ăn)", "Weather (thời tiết)", "Clothes (quần áo)", "Days of the week (thứ trong tuần)"]},
+    "3": {"ten": "Lớp 3", "level": "beginner", "giai_thich_tv": true,
+      "units": ["Hello / My friends", "Our names and ages", "My school things", "My body and face", "My toys", "My house", "My pets", "Numbers and colours", "My family", "Rooms in the house"]},
+    "4": {"ten": "Lớp 4", "level": "elementary", "giai_thich_tv": true,
+      "units": ["My daily routine", "Hobbies", "Telling the time", "Food and drink", "Jobs", "Sports", "The weather and seasons", "My town", "Days and months", "Feelings"]},
+    "5": {"ten": "Lớp 5", "level": "elementary", "giai_thich_tv": true,
+      "units": ["My hometown", "Daily activities (past)", "Future plans and jobs", "Countries and nationalities", "Health and the body", "Directions", "The environment", "Festivals", "Shopping", "Transport"]},
+    "6": {"ten": "Lớp 6", "level": "pre-intermediate", "giai_thich_tv": false,
+      "units": ["My new school", "My house", "My friends", "My neighbourhood", "Natural wonders of Vietnam", "Our Tet holiday", "Television", "Sports and games", "Cities of the world", "Our houses in the future", "Our greener world", "Robots"]},
+    "7": {"ten": "Lớp 7", "level": "pre-intermediate", "giai_thich_tv": false,
+      "units": ["Hobbies", "Healthy living", "Community service", "Music and arts", "Food and drink", "A visit to a school", "Traffic", "Films", "Festivals around the world", "Energy sources", "Travelling in the future", "English-speaking countries"]},
+    "8": {"ten": "Lớp 8", "level": "intermediate", "giai_thich_tv": false,
+      "units": ["Leisure activities", "Life in the countryside", "Teenagers", "Ethnic groups of Vietnam", "Our customs and traditions", "Lifestyles", "Environmental protection", "Shopping", "Natural disasters", "Communication", "Science and technology", "Life on other planets"]},
+    "9": {"ten": "Lớp 9", "level": "intermediate", "giai_thich_tv": false,
+      "units": ["Local community", "City life", "Healthy living for teens", "Life in the past", "Our experiences", "Vietnamese traditional crafts", "Natural wonders of the world", "Tourism", "English in the world", "Space travel", "Changing roles in society", "My future career"]}
+  },
+  "extra": {
+    "giao_tiep": {"ten": "Giao tiếp hằng ngày", "level": "mixed", "giai_thich_tv": false,
+      "units": ["Giới thiệu bản thân", "Hỏi đường", "Ở nhà hàng / quán ăn", "Đi mua sắm", "Gọi điện thoại", "Ở sân bay / khách sạn", "Nói về sở thích", "Kể về một ngày của bạn", "Hỏi thăm sức khoẻ", "Mời và từ chối"]},
+    "nang_cao": {"ten": "Nâng cao (luyện phản xạ)", "level": "advanced", "giai_thich_tv": false,
+      "units": ["Tranh luận ngắn (debate)", "Kể chuyện (storytelling)", "Thuyết trình 1 phút", "Phỏng vấn", "Miêu tả tranh", "Nêu quan điểm", "Thành ngữ thông dụng", "Phát âm chuẩn (minimal pairs)"]}
+  }
+}
