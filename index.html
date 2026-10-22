@@ -373,9 +373,16 @@ async function loadQuiz(){
 let voices=[];
 function loadVoices(){ voices=speechSynthesis.getVoices(); }
 speechSynthesis.onvoiceschanged=loadVoices; loadVoices();
+// iPhone: chi cho doc to khi lan doc dau tien bat dau tu 1 lan cham cua nguoi dung -> mo khoa ngay lan cham dau
+let ttsUnlocked=false;
+function unlockTTS(){ if(ttsUnlocked||!window.speechSynthesis) return; ttsUnlocked=true;
+  try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch(e){} }
+document.addEventListener('touchend', unlockTTS, {passive:true});
+document.addEventListener('click', unlockTTS);
 function speak(text){
   if(!window.speechSynthesis) return;
-  speechSynthesis.cancel();
+  if(speechSynthesis.speaking||speechSynthesis.pending) speechSynthesis.cancel();  // iPhone: cancel roi doc ngay de mat cau
+  speechSynthesis.resume();
   const u=new SpeechSynthesisUtterance(text.replace(/[🔊📚✅❌⚠🎉]/g,''));
   u.lang='en-US';
   u.rate = (gradeObj&&gradeObj.giai_thich_tv)?0.82:0.95;  // lớp nhỏ đọc chậm hơn
@@ -387,14 +394,50 @@ function speak(text){
 // ---- Nghe (STT) ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const mic=$('#mic');
-if(SR){
+// iPhone mo tu bieu tuong man hinh chinh: nhan giong noi cua trinh duyet khong chay -> ghi am, gui thay AI nghe (/api/stt)
+let useRec = !SR || navigator.standalone===true;
+let mr=null, recTimer=null;
+const MIC_ERR={'not-allowed':'Chưa cho phép micro. Vào Cài đặt điện thoại → Safari (hoặc app) → Micro → Cho phép.',
+  'audio-capture':'Không mở được micro.', 'no-speech':'Thầy chưa nghe thấy gì, con bấm 🎤 nói lại nhé.',
+  'network':'Mất mạng, chưa nghe được.'};
+function blobToB64(b){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.readAsDataURL(b); }); }
+async function recToggle(){
+  if(mr&&mr.state==='recording'){ mr.stop(); return; }
+  if(busy) return;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  let st;
+  try{ st=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ toast(MIC_ERR['not-allowed']); return; }
+  const chunks=[]; mr=new MediaRecorder(st);
+  mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  mr.onstop=async()=>{
+    clearTimeout(recTimer); st.getTracks().forEach(t=>t.stop()); mic.classList.remove('on');
+    const blob=new Blob(chunks,{type:(mr.mimeType||'audio/mp4').split(';')[0]}); mr=null;
+    if(blob.size<1500){ toast(MIC_ERR['no-speech']); return; }
+    const wait=add('student','🎙 …'); wait.classList.add('loading');
+    try{
+      const r=await fetch('/api/stt',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({audio:await blobToB64(blob), mime:blob.type})});
+      const d=await r.json(); wait.remove();
+      if(!r.ok||!d.text){ toast(d.detail||MIC_ERR['no-speech']); return; }
+      teacherTurn(d.text);
+    }catch(e){ wait.remove(); toast(MIC_ERR['network']); }
+  };
+  mr.start(); mic.classList.add('on'); toast('🎙 Con nói đi, nói xong bấm 🎤 lần nữa');
+  recTimer=setTimeout(()=>{ if(mr&&mr.state==='recording') mr.stop(); }, 15000);
+}
+if(useRec && navigator.mediaDevices && window.MediaRecorder){ mic.onclick=recToggle; }
+else if(SR){
   const rec=new SR(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1;
   let on=false;
   mic.onclick=()=>{ if(busy) return; if(on){rec.stop();return;} speechSynthesis.cancel(); try{rec.start();}catch(e){} };
   rec.onstart=()=>{ on=true; mic.classList.add('on'); };
   rec.onend=()=>{ on=false; mic.classList.remove('on'); };
   rec.onresult=e=>{ const t=e.results[0][0].transcript; inp.value=t; teacherTurn(t); inp.value=''; };
-  rec.onerror=()=>{ on=false; mic.classList.remove('on'); };
+  rec.onerror=e=>{ on=false; mic.classList.remove('on');
+    if(e.error==='service-not-allowed' && navigator.mediaDevices && window.MediaRecorder){  // may khong cho -> ghi am
+      useRec=true; mic.onclick=recToggle; toast('Bấm 🎤 lần nữa để nói (thầy nghe qua ghi âm).'); return; }
+    if(MIC_ERR[e.error]) toast(MIC_ERR[e.error]); };
 }else{ mic.style.display='none'; }
 
 // ---- Cài đặt ----

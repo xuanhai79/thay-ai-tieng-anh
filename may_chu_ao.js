@@ -40,6 +40,10 @@
     if (!/lite/.test(c.model)) gen.thinkingConfig = { thinkingBudget: 0 };  // tat suy nghi cho nhanh
     const body = { contents, generationConfig: gen };
     if (sys) body.systemInstruction = { parts: [{ text: sys }] };
+    return callGemini(c, body);
+  }
+
+  async function callGemini(c, body) {
     let lastErr = "";
     for (let i = 0; i < 5; i++) {
       let r;
@@ -58,6 +62,19 @@
       throw fail(502, "Gemini lỗi " + r.status + ": " + lastErr);
     }
     throw fail(502, "Gemini bận, thử lại sau. (" + lastErr + ")");
+  }
+
+  // nghe giong hoc sinh (iPhone app man hinh chinh khong co nhan giong cua trinh duyet): ghi am -> Gemini chep lai
+  async function sttAudio(b64, mime) {
+    const c = cfg();
+    if (!c.api_key) throw fail(400, "Chưa có API key Gemini. Mở ⚙ Cài đặt để dán key.");
+    const gen = { temperature: 0 };
+    if (!/lite/.test(c.model)) gen.thinkingConfig = { thinkingBudget: 0 };
+    const body = { generationConfig: gen, contents: [{ role: "user", parts: [
+      { inline_data: { mime_type: mime || "audio/mp4", data: b64 } },
+      { text: "Chép lại CHÍNH XÁC lời học sinh vừa nói trong đoạn ghi âm (thường là tiếng Anh, có thể lẫn tiếng Việt). "
+            + "Chỉ trả về đúng câu đã nói, không giải thích, không sửa lỗi. Không có lời nói thì trả về chuỗi rỗng." }] }] };
+    return (await callGemini(c, body)).trim().replace(/^["']|["']$/g, "");
   }
 
   // ---- loi day cua thay: chep tu server.py (teacher_system) ----
@@ -119,6 +136,10 @@
       try { ws = (JSON.parse(raw).words || []).filter(w => w.en && w.emoji).slice(0, n); if (!ws.length) throw 0; }
       catch (e) { throw fail(502, "Thầy AI chọn từ chưa đúng dạng, thử lại."); }
       return { words: ws, unit };
+    },
+    "POST /api/stt": async b => {
+      if (!b.audio) throw fail(400, "Không có ghi âm.");
+      return { text: await sttAudio(b.audio, b.mime) };
     },
     "POST /api/login": () => { throw fail(400, "Bản web không có tài khoản: sao và tiến độ lưu ngay trên máy này."); },
     "POST /api/register": () => { throw fail(400, "Bản web không có tài khoản: sao và tiến độ lưu ngay trên máy này."); },
