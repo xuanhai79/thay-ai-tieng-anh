@@ -43,9 +43,9 @@
     return callGemini(c, body);
   }
 
-  async function callGemini(c, body) {
+  async function callGemini(c, body, tries) {
     let lastErr = "";
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < (tries || 5); i++) {
       let r;
       try {
         r = await realFetch(GEM + encodeURIComponent(c.model) + ":generateContent", { method: "POST",
@@ -64,17 +64,31 @@
     throw fail(502, "Gemini bận, thử lại sau. (" + lastErr + ")");
   }
 
-  // nghe giong hoc sinh (iPhone app man hinh chinh khong co nhan giong cua trinh duyet): ghi am -> Gemini chep lai
-  async function sttAudio(b64, mime) {
+  // nghe giong hoc sinh: ghi am -> Gemini chep lai, CO NGU CANH (lop, bai, cau thay vua hoi) cho nghe dung hon.
+  // Thu mo hinh nghe tot hon (STT_MODEL) truoc, ban / het luot thi ve mo hinh trong ⚙.
+  const STT_MODEL = "gemini-flash-latest";
+  function sttPrompt(g, unit, last) {
+    return `Đây là ghi âm một học sinh Việt Nam ${g ? g.ten : ""} đang học tiếng Anh` + (unit ? `, bài "${unit}"` : "") + ". "
+      + (last ? `Thầy vừa nói / hỏi: "${String(last).slice(0, 300)}". ` : "")
+      + "Học sinh trả lời: giọng trẻ em, phát âm chưa chuẩn, có thể nói tiếng Việt. Hãy chép lại câu học sinh nói. "
+      + "Khi âm nghe giống, ưu tiên từ tiếng Anh hợp với bài học và câu hỏi của thầy; KHÔNG tự sửa ngữ pháp, không thêm từ "
+      + "học sinh không nói. Nói tiếng Việt thì chép tiếng Việt. Chỉ trả về đúng câu đã nói; không có lời nói thì trả về chuỗi rỗng.";
+  }
+  async function sttAudio(b64, mime, ctx) {
     const c = cfg();
     if (!c.api_key) throw fail(400, "Chưa có API key Gemini. Mở ⚙ Cài đặt để dán key.");
-    const gen = { temperature: 0 };
-    if (!/lite/.test(c.model)) gen.thinkingConfig = { thinkingBudget: 0 };
-    const body = { generationConfig: gen, contents: [{ role: "user", parts: [
-      { inline_data: { mime_type: mime || "audio/mp4", data: b64 } },
-      { text: "Chép lại CHÍNH XÁC lời học sinh vừa nói trong đoạn ghi âm (thường là tiếng Anh, có thể lẫn tiếng Việt). "
-            + "Chỉ trả về đúng câu đã nói, không giải thích, không sửa lỗi. Không có lời nói thì trả về chuỗi rỗng." }] }] };
-    return (await callGemini(c, body)).trim().replace(/^["']|["']$/g, "");
+    let g = null, unit = "";
+    try { if (ctx.grade) [g, unit] = await unitInfo(ctx.grade, ctx.unit || 0); } catch (e) {}
+    const body = model => {
+      const gen = { temperature: 0 };
+      if (!/lite/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 };
+      return { generationConfig: gen, contents: [{ role: "user", parts: [
+        { inline_data: { mime_type: mime || "audio/mp4", data: b64 } }, { text: sttPrompt(g, unit, ctx.last) }] }] };
+    };
+    let out;
+    try { out = await callGemini(Object.assign({}, c, { model: STT_MODEL }), body(STT_MODEL), 1); }
+    catch (e) { if (c.model === STT_MODEL) throw e; out = await callGemini(c, body(c.model)); }
+    return out.trim().replace(/^["']|["']$/g, "");
   }
 
   // ---- loi day cua thay: chep tu server.py (teacher_system) ----
@@ -89,6 +103,7 @@
       quiz: "Hỏi học sinh từng câu hỏi ngắn (miệng) về chủ đề, nghe đáp, chấm đúng/sai và giải thích ngắn."
     }[mode] || "Dạy bài.";
     return `Bạn là thầy/cô giáo tiếng Anh thân thiện trong app học cho học sinh Việt Nam ${g.ten} (trình độ ${lv}). Chủ đề đang học: "${unit}".\n${ngonNgu}\nNhiệm vụ: ${nv}\n`
+      + "Lời học sinh được nhận từ giọng nói nên có thể sai vài chữ: hãy đoán ý học sinh muốn nói theo ngữ cảnh, KHÔNG chấm sai hay bắt lỗi chỉ vì chữ bị nhận nhầm (chỉ sửa lỗi thật sự về từ / ngữ pháp). "
       + "QUAN TRỌNG: trả lời NGẮN (2-4 câu), vì câu trả lời sẽ được ĐỌC TO cho học sinh nghe. Không dùng ký hiệu markdown, không gạch đầu dòng dài. Luôn kết thúc bằng một câu hỏi hoặc lời mời học sinh nói.";
   }
 
@@ -139,7 +154,7 @@
     },
     "POST /api/stt": async b => {
       if (!b.audio) throw fail(400, "Không có ghi âm.");
-      return { text: await sttAudio(b.audio, b.mime) };
+      return { text: await sttAudio(b.audio, b.mime, b) };
     },
     "POST /api/login": () => { throw fail(400, "Bản web không có tài khoản: sao và tiến độ lưu ngay trên máy này."); },
     "POST /api/register": () => { throw fail(400, "Bản web không có tài khoản: sao và tiến độ lưu ngay trên máy này."); },
